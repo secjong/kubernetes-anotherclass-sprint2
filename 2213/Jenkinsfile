@@ -37,11 +37,12 @@ pipeline {
         }
 
         stage('쿠버네티스 Blue배포') {
+            // blue 배포 매니페스트를 클러스터에 적용한다.
             steps {
                 sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/blue/namespace.yaml"
                 sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/blue/configmap.yaml"
                 sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/blue/secret.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/blue/service.yaml"
+                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/blue/service.yaml" // 운영용 서비스
                 sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/blue/deployment.yaml"
             }
         }
@@ -53,13 +54,17 @@ pipeline {
         }
 
         stage('쿠버네티스 Green배포') {
+            // green 배포 매니페스트를 클러스터에 적용한다.
+            // green 배포가 완료되면 QA 담당자는 QA용 서비스에 붙어서 테스트를 진행한다.
             steps {
 	        	sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/green/deployment.yaml"
-                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/green/service.yaml"
+                sh "kubectl apply -f ./${CLASS_NUM}/deploy/k8s/green/service.yaml" // QA용 서비스
             }
         }
 
         stage('전환여부 확인') {
+            // 운영용 서비스의 selector 를 green 파드를 바라보도록 수정 적용한다.
+            // 적용하면 운영용 서비스의 트래픽이 바로 green 파드로 유입된다.
             steps {
                 script {
                     returnValue = input message: 'Green 전환?', ok: "Yes", parameters: [booleanParam(defaultValue: true, name: 'IS_SWITCHED')]
@@ -75,6 +80,8 @@ pipeline {
                 script {
                     returnValue = input message: 'Blue 롤백?', parameters: [choice(choices: ['done', 'rollback'], name: 'IS_ROLLBACk')]
                     if (returnValue == "done") {
+                        // 완료시 -> blue 디플로이먼트와 QA용 서비스를 삭제한다.
+                        // 운영용 서비스, 컨피그맵, 시크릿의 version label 을 올라간 버전으로 수정 적용한다.
                         sh "kubectl delete -f ./${CLASS_NUM}/deploy/k8s/blue/deployment.yaml"
                         sh "kubectl delete -f ./${CLASS_NUM}/deploy/k8s/green/service.yaml"
                         sh "kubectl patch -n anotherclass-221 svc api-tester -p '{\"metadata\": {\"labels\": {\"version\": \"2.0.0\"}}}'"
@@ -82,6 +89,8 @@ pipeline {
                         sh "kubectl patch -n anotherclass-221 secret api-tester-postgresql -p '{\"metadata\": {\"labels\": {\"version\": \"2.0.0\"}}}'"
                     }
                     if (returnValue == "rollback") {
+                        // 롤백시 -> 운영용 서비스의 selector 를 다시 blue 파드를 바라보도록 수정한다.
+                        // 사실 QA용 서비스와 green 디플로이먼트 삭제도 필요하다.
                         sh "kubectl patch -n anotherclass-221 svc api-tester -p '{\"spec\": {\"selector\": {\"blue-green-no\": \"1\"}}}'"
                     }
                 }

@@ -25,6 +25,7 @@ spec:
         component: backend-server
         name: api-tester
         version: 2.0.0
+        # blue/green 배포를 위한 식별값 - service selecotr 로 지정
         blue-green-no: "2"
     spec:
       nodeSelector:

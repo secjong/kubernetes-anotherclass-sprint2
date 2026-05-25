@@ -27,13 +27,14 @@ spec:
         name: api-tester
         instance: api-tester
         version: 1.0.0
+        # blue/green 배포를 위한 식별값 - service selecotr 로 지정
         blue-green-no: "1"
     spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-master
       containers:
         - name: api-tester-1
-          image: 1pro/api-tester:v1.0.0
+          image: ctw104/api-tester:v1.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
