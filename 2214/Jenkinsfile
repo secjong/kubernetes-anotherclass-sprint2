@@ -64,6 +64,8 @@ pipeline {
                 script {
                     def returnValue
                     while (returnValue != "true true"){
+                        // blue-green-no: "2" 인 파드의 컨테이너 상태가 ready 인지 5초 단위로 확인한다. but 배포되는 파드가 2개로 고정된 경우만 이렇게 사용가능.
+                        // 파드가 2개(=컨테이너 2개)이므로, "true true" 라는 문자열이 출력된다.
                         returnValue = sh(returnStdout: true, encoding: 'UTF-8', script: "kubectl get -n anotherclass-221 pods -l instance='api-tester-2214',blue-green-no='2' -o jsonpath='{.items[*].status.containerStatuses[*].ready}'")
                         echo "${returnValue}"
                         sleep 5
@@ -73,12 +75,15 @@ pipeline {
         }
 
         stage('Green 전환 완료') {
+            // 서비스가 바라보는 파드를 green 으로 전환한다.
             steps {
                 sh "kubectl patch -n anotherclass-221 svc api-tester-2214 -p '{\"spec\": {\"selector\": {\"blue-green-no\": \"2\"}}}'"
             }
         }
 
         stage('Blue 삭제') {
+            // blue 디플로이먼트를 삭제하고,
+            // 각 오브젝트의 version 을 최신화시킨다.
             steps {
                 sh "kubectl delete -f ./${CLASS_NUM}/deploy/k8s/blue/deployment.yaml"
                 sh "kubectl patch -n anotherclass-221 svc api-tester-2214 -p '{\"metadata\": {\"labels\": {\"version\": \"2.0.0\"}}}'"
