@@ -89,7 +89,9 @@ pipeline {
             steps {
                 // K8S 배포
                 input message: '배포 시작', ok: "Yes"
+                // namespace 는 직접 생성해준다.
                 sh "kubectl apply -f ./${CLASS_NUM}/deploy/kubectl/namespace-${params.PROFILE}.yaml"
+                // 오버레이할 kustomize 파일을 경로 지정해 오브젝트들을 생성한다.
                 sh "kubectl apply -k ./${CLASS_NUM}/deploy/kustomize/api-tester/overlays/${params.PROFILE}"
             }
         }

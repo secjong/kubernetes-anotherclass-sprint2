@@ -1,12 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 commonLabels:
+  # 이 kustomize 의 형제로 위치한 모든 매니페스트에 자동으로 labels 와 selector 가 붙는다.
   part-of: k8s-anotherclass
   component: backend-server
   name: api-tester
   instance: api-tester-2222
   managed-by: kustomize
 resources:
+  # 여기에 지정해야 배포된다.
   - configmap.yaml
   - deployment.yaml
   - secret.yaml

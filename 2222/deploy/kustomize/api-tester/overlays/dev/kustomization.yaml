@@ -6,6 +6,7 @@ commonLabels:
 resources:
   - ../../base
 patches:
+  # 이 kustomize 의 형제로 위치한 매니페스트 중에 overlay 로 사용할 매니페스트들 지정
   - path: configmap.yaml
   - path: deployment-spec.yaml
   - path: deployment-ver.yaml
