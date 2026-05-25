@@ -1,10 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  # include: _helpers.tpl 변수 사용
   name: {{ include "api-tester.fullname" . }}
   labels:
     {{- include "api-tester.labels" . | nindent 4 }}
 spec:
+  # .Values: values.yaml 정의 변수 사용
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
@@ -31,6 +33,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
+        # .Chart: Chart.yaml 정의 변수 사용(변수명 Capitalize 주의)
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}

@@ -1,7 +1,9 @@
 {{/*
 Expand the name of the chart.
 */}}
+# 변수명 정의
 {{- define "api-tester.name" -}}
+# 변수값 정의. .Chart 는 Chart.yaml 의 변수를 가져오며, 변수명은 Capitalize 해야 한다.
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -15,6 +17,7 @@ If release name contains chart name it will be used as a full name.
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
+# .Release 는 Helm이 실행될 때 자체적으로 생성하여 제공하는 빌트인 객체임
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
