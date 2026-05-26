@@ -71,6 +71,7 @@ pipeline {
             steps {
                 // K8S 배포
                 sh "helm template api-tester-${CLASS_NUM} ./${CLASS_NUM}/deploy/helm/api-tester" +
+                // -f 옵션으로 values 파일 경로를 지정해주면, 기본 values.yaml 위에 오버레이된다.
                    " -f ./${CLASS_NUM}/deploy/helm/api-tester/values-${params.PROFILE}.yaml -n anotherclass-222-${params.PROFILE}"
                 // --set replicaCount='3' --set port='80' --set profile='dev' --set nodeport='32223'
             }
@@ -81,6 +82,7 @@ pipeline {
                 input message: '배포 시작', ok: "Yes"
                 sh "kubectl apply -f ./${CLASS_NUM}/deploy/kubectl/namespace-${params.PROFILE}.yaml"
                 sh "helm upgrade api-tester-${CLASS_NUM} ./${CLASS_NUM}/deploy/helm/api-tester" +
+                    // -f 옵션으로 values 파일 경로를 지정해주면, 기본 values.yaml 위에 오버레이된다.
                    " -f ./${CLASS_NUM}/deploy/helm/api-tester/values-${params.PROFILE}.yaml" +
                    " -n anotherclass-222-${params.PROFILE} --install"  //  --create-namespace
             }
