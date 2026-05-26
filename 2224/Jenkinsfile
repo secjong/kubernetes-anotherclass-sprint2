@@ -56,7 +56,7 @@ pipeline {
             }
         }
 
-        stage('컨테이너 빌드 및 업로드') {
+        stage('이미지 빌드 및 업로드') {
             steps {
                 // jar 파일 복사
                 sh "cp ./build/libs/app-0.0.1-SNAPSHOT.jar ./${CLASS_NUM}/build/docker/app-0.0.1-SNAPSHOT.jar"
@@ -64,7 +64,7 @@ pipeline {
                 script{
 
                     // 도커 빌드 - [1] 중요 데이터 암호화 관리
-                    withCredentials([usernamePassword(credentialsId: 'docker_password', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    withCredentials([usernamePassword(credentialsId: 'docker_username_password', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
                         sh "echo " + '${PASSWORD}' + " | docker login -u " + '${USERNAME}' + " --password-stdin"
                     }
 
@@ -90,7 +90,7 @@ pipeline {
         stage('네임스페이스 생성') { // 배포시 apply로 Namespace 생성 or 배포와 별개로 미리 생성 (추후 삭제시 별도 삭제)
             steps {
                 // kubectl 명령 사용 - [1] 중요 데이터 암호화 관리
-                withCredentials([file(credentialsId: 'k8s_master_config', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'k8s_admin_config', variable: 'KUBECONFIG')]) {
                     sh "kubectl apply -f ./${CLASS_NUM}/deploy/kubectl/namespace-${params.PROFILE}.yaml --kubeconfig " + '${KUBECONFIG}'
                 }
             }
@@ -99,7 +99,7 @@ pipeline {
         stage('헬름 배포') {
             steps {
                 // helm 명령 사용 - [1] 중요 데이터 암호화 관리
-                withCredentials([file(credentialsId: 'k8s_master_config', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'k8s_admin_config', variable: 'KUBECONFIG')]) {
                     sh "helm upgrade api-tester-${CLASS_NUM} ./${CLASS_NUM}/deploy/helm/api-tester -f ./${CLASS_NUM}/deploy/helm/api-tester/values-${params.PROFILE}.yaml" +
                             " -n anotherclass-222-${params.PROFILE} --install --kubeconfig " + '${KUBECONFIG}' +
 
