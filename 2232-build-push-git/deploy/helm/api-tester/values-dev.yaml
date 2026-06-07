@@ -4,7 +4,7 @@ replicaCount: 1
 image:
   repository: ctw104/api-tester
   pullPolicy: Always
-  tag: "git-260607.204700"
+  tag: "git-260607.205538"
 
 resources:
   limits:
